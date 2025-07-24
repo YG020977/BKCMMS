@@ -546,8 +546,8 @@
                     <option value="congelateur">Congélateur</option>
                     <option value="machine_cafe">Machine à café</option>
                     <option value="autre">Autre</option>
-                </select>
-            </div>
+                </select> 
+            </div> 
             <div class="form-group">
                 <label for="modalEquipmentInstallDate">Date d'installation</label>
                 <input type="date" id="modalEquipmentInstallDate" class="form-control">
@@ -774,6 +774,7 @@
         
         request.onsuccess = function(event) {
             db = event.target.result;
+	importDefaultEquipments(); // Ajoutez cette ligne
             loadDashboard();
             loadEquipments();
             loadTasks();
@@ -1568,6 +1569,82 @@
             };
         }
         
+// Fonction pour importer les équipements
+function importDefaultEquipments() {
+    const defaultEquipments = [
+        { name: "Machine à glace", serial: "AVR100", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "Broiler 1", serial: "AVR101", location: "Avranches", type: "grill", installDate: "2023-01-01" },
+        { name: "Broiler 2", serial: "AVR102", location: "Avranches", type: "grill", installDate: "2023-01-01" },
+        { name: "friteuse frite", serial: "AVR103", location: "Avranches", type: "friteuse", installDate: "2023-01-01" },
+        { name: "friteuse snack", serial: "AVR104", location: "Avranches", type: "friteuse", installDate: "2023-01-01" },
+        { name: "PHU 1 (Pulse Heat Unit)", serial: "AVR105", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "PHU 2", serial: "AVR106", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "PHU 3", serial: "AVR107", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "PHU 4", serial: "AVR108", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "PHU 5 Stand By", serial: "AVR109", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "PHU 6 Snack", serial: "AVR110", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "Chute 1", serial: "AVR111", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "Chute 2", serial: "AVR112", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "Bac de frite", serial: "AVR113", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "frigo auxilliaire broiler 1", serial: "AVR114", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "frigo auxilliaire broiler 2", serial: "AVR115", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "frigo auxillaire snack", serial: "AVR116", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "frigo armoire snack/frite", serial: "AVR117", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "frigo armoire comptoir", serial: "AVR118", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "frigo armoire drive", serial: "AVR119", location: "Avranches", type: "refrigerateur", installDate: "2023-01-01" },
+        { name: "toaster 1", serial: "AVR120", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "toaster 2", serial: "AVR121", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "toaster 3", serial: "AVR122", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "toaster 4", serial: "AVR123", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "toaster 5", serial: "AVR124", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "climatisation ETT cuisine", serial: "AVR125", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "climatisation ETT salle", serial: "AVR126", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "machine à café", serial: "AVR127", location: "Avranches", type: "machine_cafe", installDate: "2023-01-01" },
+        { name: "distributeur de frite", serial: "AVR128", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "armoire électrique", serial: "AVR129", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "caméras de surveillance et moniteurs", serial: "AVR130", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "moniteurs d'affichage", serial: "AVR131", location: "Avranches", type: "autre", installDate: "2023-01-01" },
+        { name: "Parc de jeu pour enfant", serial: "AVR132", location: "Avranches", type: "autre", installDate: "2023-01-01" }
+    ];
+
+    const transaction = db.transaction(["equipments"], "readwrite");
+    const store = transaction.objectStore("equipments");
+    
+    // Vérifier si les équipements existent déjà
+    store.count().onsuccess = function(event) {
+        if (event.target.result === 0) {
+            // La base est vide, on importe les équipements
+            defaultEquipments.forEach(equipment => {
+                store.add({
+                    name: equipment.name,
+                    serial: equipment.serial,
+                    location: equipment.location,
+                    type: equipment.type,
+                    installDate: equipment.installDate,
+                    createdAt: new Date().toISOString()
+                });
+            });
+            
+            transaction.oncomplete = function() {
+                console.log("Import des équipements par défaut terminé");
+                loadEquipments();
+                loadDashboard();
+            };
+        }
+    };
+}
+
+// fonction pour vérifier si un équipement existe déjà avant l'import
+function equipmentExists(serial, callback) {
+    const transaction = db.transaction(["equipments"], "readonly");
+    const store = transaction.objectStore("equipments");
+    const index = store.index("serial");
+    const request = index.get(serial);
+    
+    request.onsuccess = function(event) {
+        callback(!!event.target.result);
+    };
+}
         // Fonctions pour les rapports
         function generateReport() {
             const reportType = document.getElementById('reportType').value;
